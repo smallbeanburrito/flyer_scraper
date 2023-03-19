@@ -49,11 +49,12 @@ action.move_to_element(load_content).perform()
 load_items = load_content.find_elements(By.CLASS_NAME, "section-container")
 
 for content in load_items:
-    for load_item in content.find_elements(By.CLASS_NAME, "block"):
-        try:
-            action.move_to_element(load_item).perform()
-        except:
-            break
+    load_item = content.find_elements(By.CLASS_NAME, "block")
+    try:
+        action.move_to_element(load_item[0]).perform()
+        action.move_to_element(load_item[-1]).perform()
+    except:
+        continue
 
 # pass in each loaded page to beautiful soup
 content = driver.page_source
