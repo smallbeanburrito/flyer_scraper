@@ -1,14 +1,24 @@
+import chromedriver_autoinstaller
 from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
+from openpyxl import Workbook
+from openpyxl.utils import get_column_letter
+
 from bs4 import BeautifulSoup
 
-path = "C:\Program Files (x86)\chromedriver.exe"
-driver = webdriver.Chrome(path)
+ads = Workbook()
+flyer_items = ads.active
+
+chromedriver_autoinstaller.install()
+
+path = Service("C:\Program Files (x86)\chromedriver.exe")
+driver = webdriver.Chrome(service=path)
 
 driver.get("https://www.foodbasics.ca/flyer.en.html#menu")
 
@@ -55,16 +65,18 @@ for content in load_items:
 
     for item in items:
         unique_item = item.find('div', class_="product-container")
-        print(unique_item)
         if unique_item is None:
             continue
         else:
             unique_items.append(unique_item)
+        print(unique_item)
 
 product_info = []
 
 for item in unique_items:
     product_name = item.find('p', class_="sr-only").text
+    if product_name == ' ':
+        continue
     product_price = item.find_all('span')
     if len(product_price) == 0:
         price = "Buy two or more"
@@ -79,9 +91,15 @@ for item in unique_items:
     print(product)
 
 
+absRow = 2
+for column in product_info:
+    absCol = 1
+    flyer_items[get_column_letter(absCol) + str(absRow)] = column[0]
+    flyer_items[get_column_letter(absCol+1) + str(absRow)] = column[1]
+    absRow = absRow + 1
 
+ads.save("flyers.xlsx")
 
-# use move to next sibling to load each block
 
 
 
