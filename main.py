@@ -24,10 +24,11 @@ driver.get("https://www.foodbasics.ca/flyer.en.html#menu")
 menu = driver.find_element(By.CLASS_NAME, "tcStoreList")
 menu.click()
 
+# select store location
 location = driver.find_element(By.XPATH, "//*[@id='injectStoreList']/label[111]")
 location.click()
 
-driver.implicitly_wait(10)
+driver.implicitly_wait(2)
 
 flyer_menu = driver.find_element(By.ID, "saveSelectedStore")
 flyer_menu.click()
@@ -44,31 +45,31 @@ action = ActionChains(driver)
 
 action.move_to_element(load_content).perform()
 
-#load and scroll to each page of flyer
+# load and scroll to each page of flyer
 load_items = load_content.find_elements(By.CLASS_NAME, "section-container")
 
-
 for content in load_items:
-    try:
-        action.move_to_element(content).perform()
-    except:
-        break
-#need to pass in new loaded page to beautiful soup every time
-    content = driver.page_source
+    for load_item in content.find_elements(By.CLASS_NAME, "block"):
+        try:
+            action.move_to_element(load_item).perform()
+        except:
+            break
 
-    doc = BeautifulSoup(content, 'lxml')
+# pass in each loaded page to beautiful soup
+content = driver.page_source
+doc = BeautifulSoup(content, 'lxml')
+items = doc.find_all('div', class_="block")
 
-    items = doc.find_all('div', class_="block")
+unique_items = []
 
-    unique_items = []
-
-    for item in items:
-        unique_item = item.find('div', class_="product-container")
-        if unique_item is None:
-            continue
-        else:
-            unique_items.append(unique_item)
-        print(unique_item)
+for item in items:
+    unique_item = item.find('div', class_="product-container")
+    if unique_item is None:
+        continue
+    else:
+        unique_items.append(unique_item)
+    print(unique_item)
+print()
 
 product_info = []
 
@@ -87,9 +88,8 @@ for item in unique_items:
             price = price + product.text
     product = (product_name, price)
     product_info.append(product)
-    print(product)
 
-
+# save into excel
 absRow = 2
 for column in product_info:
     absCol = 1
