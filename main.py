@@ -17,8 +17,7 @@ flyer_items = ads.active
 
 chromedriver_autoinstaller.install()
 
-path = Service("C:\Program Files (x86)\chromedriver.exe")
-driver = webdriver.Chrome(service=path)
+driver = webdriver.Chrome()
 
 driver.get("https://www.foodbasics.ca/flyer.en.html#menu")
 
