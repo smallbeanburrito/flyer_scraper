@@ -8,7 +8,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import time
 import re
-
+from datetime import datetime
 from bs4 import BeautifulSoup
 
 def nofrills_scrape(driver):
@@ -24,41 +24,52 @@ def nofrills_scrape(driver):
     except:
         pass
 
-    # switch to navigation frame
-    content = driver.find_element(By.CLASS_NAME, "flyers-and-deals-layout__content")
-    content = content.find_element(By.TAG_NAME, "iframe")
-    driver.switch_to.frame(content.get_attribute("id"))
+    now = datetime.now()
+    day = now.strftime('%A')
+    wednesday = day == 'Wednesday'
 
-    # open ads dropdown menu
-    ad_menu = driver.find_element(By.CLASS_NAME, "flipp-drop-down-pub-container")
-    ad_menu.click()
+    if wednesday:
+        content = driver.find_element(By.CLASS_NAME, "flyers-and-deals-layout__content")
+        content = content.find_element(By.TAG_NAME, "main")
+        content = content.find_element(By.TAG_NAME, "iframe")
+        driver.switch_to.frame(content.get_attribute("id"))
+    else:
+        # switch to navigation frame
+        content = driver.find_element(By.CLASS_NAME, "flyers-and-deals-layout__content")
+        content = content.find_element(By.TAG_NAME, "iframe")
+        driver.switch_to.frame(content.get_attribute("id"))
 
-    # switch to menu frame
-    driver.switch_to.parent_frame()
-    ads = driver.find_elements(By.TAG_NAME, "iframe")
+        # open ads dropdown menu
+        ad_menu = driver.find_element(By.CLASS_NAME, "flipp-drop-down-pub-container")
+        ad_menu.click()
 
-    driver.switch_to.frame(ads[1].get_attribute("id"))
-    ads = driver.find_element(By.TAG_NAME, "ul")
-    ads = ads.find_elements(By.TAG_NAME, "li")
+        # switch to menu frame
+        driver.switch_to.parent_frame()
+        ads = driver.find_elements(By.TAG_NAME, "iframe")
 
-    weekly_flyer = 0
-    # find index of weekly flyer
-    for index, ad in enumerate(ads):
-        title = ad.find_element(By.CLASS_NAME, "flipp-publication-header")
-        title = driver.execute_script("return arguments[0].innerHTML;", title)
-        weekly = re.search("^Weekly", title)
-        if weekly:
-            weekly_flyer = index
+        driver.switch_to.frame(ads[1].get_attribute("id"))
+        ads = driver.find_element(By.TAG_NAME, "ul")
+        ads = ads.find_elements(By.TAG_NAME, "li")
 
-    actions = ActionChains(driver)
-    driver.execute_script("arguments[0].scrollIntoView();", ads[1])
-    time.sleep(0.5)
+        weekly_flyer = 0
+        selected = False
+        # find index of weekly flyer
+        for index, ad in enumerate(ads):
+            title = ad.find_element(By.CLASS_NAME, "flipp-publication-header")
+            title = driver.execute_script("return arguments[0].innerHTML;", title)
+            weekly = re.search("^Weekly", title)
+            if weekly:
+                weekly_flyer = index
+                selected = ad.find_element(By.TAG_NAME, "flipp-publication").get_attribute("is-selected") == 'true'
 
-    # select weekly flyer
-    ad_html = ads[weekly_flyer].find_element(By.TAG_NAME, "a")
-    ad_html.click()
-    time.sleep(0.25)
+        actions = ActionChains(driver)
+        driver.execute_script("arguments[0].scrollIntoView();", ads[weekly_flyer])
+        time.sleep(0.5)
 
+        # select weekly flyer
+        ad_html = ads[weekly_flyer].find_element(By.TAG_NAME, "a")
+        ad_html.click()
+        time.sleep(0.25)
     '''
     SCRAPING
     '''
