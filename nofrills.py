@@ -61,15 +61,24 @@ def nofrills_scrape(driver):
             if weekly:
                 weekly_flyer = index
                 selected = ad.find_element(By.TAG_NAME, "flipp-publication").get_attribute("is-selected") == 'true'
+                print(selected)
 
         actions = ActionChains(driver)
         driver.execute_script("arguments[0].scrollIntoView();", ads[weekly_flyer])
         time.sleep(0.5)
 
         # select weekly flyer
-        ad_html = ads[weekly_flyer].find_element(By.TAG_NAME, "a")
-        ad_html.click()
-        time.sleep(0.25)
+        if not selected:
+            ad_html = ads[weekly_flyer].find_element(By.TAG_NAME, "a")
+            ad_html.click()
+            time.sleep(0.25)
+        else:
+            #TODO click back out to selected flyer
+            driver.execute_script("window.history.go(-1)")
+            content = driver.find_element(By.CLASS_NAME, "flyers-and-deals-layout__content")
+            content = content.find_element(By.TAG_NAME, "main")
+            content = content.find_element(By.TAG_NAME, "iframe")
+            driver.switch_to.frame(content.get_attribute("id"))
     '''
     SCRAPING
     '''
